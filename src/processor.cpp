@@ -7,15 +7,15 @@ using std::string;
 using std::vector;
 using std::stol;
 
-// TODO: Return the aggregate CPU utilization
+// Return the aggregate CPU utilization
 float Processor::Utilization() {
   vector<string> cpuValues;
   cpuValues = LinuxParser::CpuUtilization();
   //NonIdle = user + nice + system + irq + softirq + steal;
-  unsigned long long int currNonIdle = stol(cpuValues[LinuxParser::CPUStates::kUser_] + cpuValues[LinuxParser::CPUStates::kNice_] +
-  cpuValues[LinuxParser::CPUStates::kSystem_] + cpuValues[LinuxParser::CPUStates::kIRQ_] + cpuValues[LinuxParser::CPUStates::kSoftIRQ_] +
-  cpuValues[LinuxParser::CPUStates::kSteal_]);
-  unsigned long long int currIdle = stol(cpuValues[LinuxParser::CPUStates::kIdle_] + cpuValues[LinuxParser::CPUStates::kIOwait_]);
+  unsigned long long int currNonIdle = stoll(cpuValues[LinuxParser::CPUStates::kUser_]) + stoll(cpuValues[LinuxParser::CPUStates::kNice_]) +
+  stoll(cpuValues[LinuxParser::CPUStates::kSystem_]) + stoll(cpuValues[LinuxParser::CPUStates::kIRQ_]) + stoll(cpuValues[LinuxParser::CPUStates::kSoftIRQ_]) +
+  stoll(cpuValues[LinuxParser::CPUStates::kSteal_]);
+  unsigned long long int currIdle = stoll(cpuValues[LinuxParser::CPUStates::kIdle_]) + stoll(cpuValues[LinuxParser::CPUStates::kIOwait_]);
   unsigned long long total, totald, idled;
   total = currNonIdle + currIdle;
 
