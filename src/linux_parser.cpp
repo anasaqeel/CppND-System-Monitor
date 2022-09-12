@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "linux_parser.h"
 
@@ -11,7 +12,7 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-// DONE: An example of how to read data from the filesystem
+// read data from the filesystem
 string LinuxParser::OperatingSystem() {
   string line;
   string key;
@@ -34,7 +35,7 @@ string LinuxParser::OperatingSystem() {
   return value;
 }
 
-// DONE: An example of how to read data from the filesystem
+// read data from the filesystem
 string LinuxParser::Kernel() {
   string os, kernel, version;
   string line;
@@ -47,7 +48,6 @@ string LinuxParser::Kernel() {
   return kernel;
 }
 
-// BONUS: Update this to use std::filesystem
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
   DIR* directory = opendir(kProcDirectory.c_str());
@@ -88,7 +88,7 @@ float LinuxParser::MemoryUtilization() {
     }
     memUtilization = memTotal - memFree;
   }
-  memUtilization /= 1000;
+  memUtilization /= memTotal;
   return memUtilization;
 }
 
@@ -197,7 +197,7 @@ vector<string> LinuxParser::CpuUtilization() {
 // Read and return the total number of processes
 int LinuxParser::TotalProcesses() { 
   string key;
-  unsigned long int value;
+  unsigned long int value = 0;
   string line;
   std::ifstream stream(kProcDirectory + kStatFilename);
   if (stream.is_open()) {
@@ -207,16 +207,17 @@ int LinuxParser::TotalProcesses() {
       while(linestream >> key >> value)
       {
         if(key == "processes")
-          return value;;
+          return value;
       }
     }
  }
+ return value;
 }
 
 // Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
   string key;
-  unsigned long int value;
+  unsigned long int value =0;
   string line;
   std::ifstream stream(kProcDirectory + kStatFilename);
   if (stream.is_open()) {
@@ -230,6 +231,7 @@ int LinuxParser::RunningProcesses() {
       }
     }
  }
+ return value;
 }
 
 // Read and return the command associated with a process
@@ -246,7 +248,8 @@ string LinuxParser::Command(int pid) {
 string LinuxParser::Ram(int pid) {
   string key;
   string line;
-  double value;
+  int value =0;
+  string str = kProcDirectory + to_string(pid) + kStatusFilename;
   std::ifstream stream(kProcDirectory + to_string(pid) + kStatusFilename);
   if(stream.is_open())
   {
@@ -254,7 +257,7 @@ string LinuxParser::Ram(int pid) {
     {
       std::istringstream lineStream(line);
       lineStream >> key;
-      if(key == "VmSize")
+      if(key == "VmSize:")
       {
         lineStream >> value;
         break;
@@ -262,7 +265,7 @@ string LinuxParser::Ram(int pid) {
     }
   }
   value = value / 1000;
-  return to_string(value) + "MB";
+  return to_string(value);
 }
 
 // Read and return the user ID associated with a process
@@ -288,7 +291,7 @@ string LinuxParser::Uid(int pid) {
 // Read and return the user associated with a process
 string LinuxParser::User(int pid) {
   string line;
-  string userName, currUid, tmp;
+  string userName{}, currUid, tmp;
   std::ifstream stream(kPasswordPath);
   string uid = Uid(pid);
   if(stream.is_open())
@@ -305,6 +308,7 @@ string LinuxParser::User(int pid) {
         }
       }
   }
+  return userName;
 }
 
 // Read and return the uptime of a process
