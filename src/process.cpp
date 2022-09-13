@@ -38,7 +38,7 @@ float Process::CpuUtilization() {
             {
                 if (!(lineStream >> numValue).fail())
                 {    
-                    long int myLong = std::stoll(s);
+                    long int myLong = std::stol(s);
                     if(tokenCounter == 13)
                         utime = myLong;
                     else if(tokenCounter == 14)
@@ -59,7 +59,7 @@ float Process::CpuUtilization() {
         long long int totalTime = utime + stime + cutime + cstime;
         long long int hertz = sysconf(_SC_CLK_TCK);
         float seconds = LinuxParser::UpTime() - (startTime / (float)hertz);
-        cpuUsage = 100 * ((totalTime / (float)hertz) / seconds);
+        cpuUsage = ((totalTime / (float)hertz) / seconds);
     }
     return cpuUsage;
 }
@@ -74,7 +74,27 @@ string Process::Ram() { return LinuxParser::Ram(pid_); }
 string Process::User() { return LinuxParser::User(pid_); }
 
 // Return the age of this process (in seconds)
-long int Process::UpTime() { return LinuxParser::UpTime(pid_); }
+long int Process::UpTime() { 
+    string line, value;
+    int tokenCounter = 0;
+    unsigned long int startTime;
+    std::ifstream stream(LinuxParser::kProcDirectory + to_string(pid_) + LinuxParser::kStatFilename);
+    if(stream.is_open())
+    {
+        std::getline(stream, line);
+        std::istringstream lineStream(line);
+        while (tokenCounter < 22)
+        {
+            lineStream >> value;
+            if(tokenCounter == 21)
+                startTime = stol(value);
+            tokenCounter++;
+        }
+    }
+    long long int hertz = sysconf(_SC_CLK_TCK);
+    long int seconds = LinuxParser::UpTime() - (startTime / (float)hertz);
+    return seconds;
+}
 
 // Overload the "less than" comparison operator for Process objects
 bool Process::operator<(Process const& a) const { return LinuxParser::UpTime(this->pid_) < LinuxParser::UpTime(a.pid_); }
